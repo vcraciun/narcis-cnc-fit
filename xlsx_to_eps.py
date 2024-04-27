@@ -16,7 +16,7 @@ class CNCConvert:
     def __init__(self):
         self.root = Tk()
         self.root.title("Conversie documente EXCEL la format grafic vectorial - Narcis CNC Design")
-        self.root.geometry('640x350')
+        self.root.geometry('640x290')
         self.root.resizable(False, False)
 
         config = {}
@@ -25,10 +25,10 @@ class CNCConvert:
 
         Label(self.root, text='Fisier EXCEL: ').grid(column=0, row=0)
         self.path = Entry(self.root, width = 80)
-        self.path.grid(column=1, row=0)
-        Button(self.root, text='Deschide', command=self.file_add).grid(column=2, row=0)
+        self.path.grid(column=1, row=0, columnspan=2)
+        Button(self.root, text='Deschide', command=self.file_add).grid(column=3, row=0)
 
-        Label(self.root, text='Output files: ', font='Helvetica 16 bold').grid(column=1, row=1, sticky="W")
+        Label(self.root, text='Fisiere Output: ', font='Helvetica 16 bold').grid(column=1, row=1, sticky="W")
         self.pdf = IntVar()
         self.svg = IntVar()
         self.eps = IntVar()
@@ -44,45 +44,58 @@ class CNCConvert:
         Checkbutton(self.root, text='SVG', variable=self.svg).grid(column=1, row=3, sticky="W")
         Checkbutton(self.root, text='EPS', variable=self.eps).grid(column=1, row=4, sticky="W")
 
-        Label(self.root, text='Formatul aranjarii: ', font='Helvetica 16 bold').grid(column=1, row=5, sticky="W")
+        Label(self.root, text='Formatul aranjarii: ', font='Helvetica 16 bold').grid(column=2, row=1, sticky="W")
         self.format = IntVar()
         if len(config) == 0:
-            self.format.set(2)
+            self.format.set(1)
         else:
             self.format.set(config["format"])
-        Radiobutton(self.root, text="Format liniar de-a lungul axei X", variable=self.format, value=1).grid(column=1, row=6, sticky="W")
-        Radiobutton(self.root, text="Format Rectangular XY CU rotatii", variable=self.format, value=2).grid(column=1, row=7, sticky="W")
-        Radiobutton(self.root, text="Format Rectangular XY FARA rotatii", variable=self.format, value=3).grid(column=1, row=8, sticky="W")
+        Radiobutton(self.root, text="Format liniar de-a lungul axei X", variable=self.format, value=1).grid(column=2, row=2, sticky="W")
+        Radiobutton(self.root, text="Format Rectangular XY CU rotatii", variable=self.format, value=2).grid(column=2, row=3, sticky="W")
+        Radiobutton(self.root, text="Format Rectangular XY FARA rotatii", variable=self.format, value=3).grid(column=2, row=4, sticky="W")
         
-        Label(self.root, text='Scale squares: ').grid(column=0, row=9)
-        self.scale1 = Entry(self.root, width = 80)
-        self.scale1.grid(column=1, row=9)
-        self.scale1.delete(0, END)            
+        Label(self.root, text='Etichete: ', font='Helvetica 16 bold').grid(column=1, row=5, sticky="W")
+        self.etichete = IntVar()
         if len(config) == 0:
-            self.scale1.insert(0, "1")
+            self.etichete.set(1)
         else:
-            self.scale1.insert(0, config["scale_squares"])
+            self.etichete.set(config["etichete"])
+        Checkbutton(self.root, text='Afiseaza', variable=self.etichete).grid(column=1, row=6, sticky="W")
 
-        Label(self.root, text='Scale fonts: ').grid(column=0, row=10)
-        self.scale2 = Entry(self.root, width = 80)
-        self.scale2.grid(column=1, row=10)
+        Label(self.root, text='Mareste de: ').grid(column=1, row=7, sticky="W")
+        self.scale2 = Entry(self.root, width = 15)
+        self.scale2.grid(column=1, row=7, columnspan=1, sticky="E")
         self.scale2.delete(0, END)            
         if len(config) == 0:
             self.scale2.insert(0, "7")
         else:
             self.scale2.insert(0, config["scale_fonts"])
-
-        Label(self.root, text='Prefix: ').grid(column=0, row=11)
-        self.prefix = Entry(self.root, width = 80)
-        self.prefix.grid(column=1, row=11)
+        
+        Label(self.root, text='Prefix: ').grid(column=1, row=8, sticky="W")
+        self.prefix = Entry(self.root, width = 15)
+        self.prefix.grid(column=1, row=8, sticky="E")
         self.prefix.delete(0, END)
         if len(config) == 0:
-            self.prefix.insert(0, "Acest camp se completeaza automat cu ID-ul fisierului")
+            self.prefix.delete(0, END)
 
-        Button(self.root, text='Proceseaza', command=self.process).grid(column=1, row=12)
+        self.scale1 = IntVar()
+        if len(config) == 0:
+            self.scale1.set(10)
+        else:
+            self.scale1.set(config["scale_squares"])
+
+        Label(self.root, text='Scala Forme Geometrice: ', font='Helvetica 16 bold').grid(column=2, row=5, sticky="W")        
+        Radiobutton(self.root, text="1 %", variable=self.scale1, value=100).grid(column=2, row=6, sticky="W")
+        Radiobutton(self.root, text="10 %", variable=self.scale1, value=10).grid(column=2, row=7, sticky="W")
+        Radiobutton(self.root, text="20 %", variable=self.scale1, value=5).grid(column=2, row=8, sticky="W")                
+        Radiobutton(self.root, text="30 %", variable=self.scale1, value=3).grid(column=2, row=6, sticky="E")
+        Radiobutton(self.root, text="50 %", variable=self.scale1, value=2).grid(column=2, row=7, sticky="E")
+        Radiobutton(self.root, text="100 %", variable=self.scale1, value=1).grid(column=2, row=8, sticky="E")                
+        
+        Button(self.root, text='Proceseaza', command=self.process).grid(column=2, row=9, sticky="W")
 
         self.status=StringVar()        
-        Label(self.root, bd=1, relief=SUNKEN, anchor=W,textvariable=self.status,font=('arial',12,'normal')).grid(column=0, row=13, columnspan=3, sticky="W")
+        Label(self.root, bd=1, relief=SUNKEN, width=70, anchor=W,textvariable=self.status,font=('arial',12,'normal')).grid(column=0, row=10, columnspan=4, sticky="W")
         self.status.set('Pregatit ... ')
 
     def SaveConfig(self):
@@ -91,11 +104,13 @@ class CNCConvert:
             "svg": self.svg.get(),
             "eps": self.eps.get(),
             "format": self.format.get(),
+            "etichete": self.etichete.get(),
             "scale_squares": self.scale1.get(),
             "scale_fonts": self.scale2.get()
         }
         with open("config.json", 'w') as f:
             json.dump(data, f)
+        self.status.set('Am salvat noua configuratie ...')
 
     def run(self):
         self.root.mainloop()
@@ -196,55 +211,52 @@ class CNCConvert:
                     self.recursive_packing(x + omega, y, w - omega, h, D, remaining, indices, result)
 
     def ConvertToVectorial(self, prefix, fis):
-        df = pd.DataFrame(pd.read_excel(fis))
-        c1 = list(df.iloc[:,1])
-        c2 = list(df.iloc[:,2])
-        c3 = list(df.iloc[:,3])
-        c4 = list(df.iloc[:,4])
-        initial_data = [(c1[i], c2[i], c3[i], c4[i]) for i in range(len(c1)) if type(c1[i]) == int and type(c2[i]) == int and type(c3[i]) == int]
-        
-        data = []
-        for item in initial_data:
-            for i in range(item[3]):
-                data += [[item[1], item[2], item[0]]]
-
-        scale_sq = float(self.scale1.get())
+        scale_sq = 1 / self.scale1.get()
         scale_fn = float(self.scale2.get())
 
         mode = self.format.get()        
         if mode == 2:        
-            height, rectangles = self.phspprg(4500*scale_sq, data)
+            height, rectangles = self.phspprg(4500*scale_sq, self.data)            
             print("Inaltimea aranjarii este: ", height)
+            self.status.set('Aranjez chenarele dreptuncghiular CU rotiri ... ')
         elif mode == 3:
-            height, rectangles = self.phsppog(4500*scale_sq, data)
+            height, rectangles = self.phsppog(4500*scale_sq, self.data)
             print("Inaltimea aranjarii este: ", height)
+            self.status.set('Aranjez chenarele dreptuncghiular FARA rotiri ... ')
         else:
             rectangles = []
             x = 20            
-            for rect in initial_data:
+            self.status.set('Aranjez chenarele de-a lungul axei X ... ')
+            for rect in self.initial_data:
                 y = 20
                 for i in range(rect[3]):
                     rectangles += [Rectangle(x, y, rect[2], rect[1], rect[0])]    
                     y += 20 + rect[1]
                 x += 20 + rect[2]                                
+            self.status.set('Aranjez chenarele de-a lungul axei X : GATA')
 
         unit.set(defaultunit="mm")
         c = canvas.canvas()    
         for sq in rectangles:
             rect = path.path(path.moveto(sq.x*scale_sq, sq.y * scale_sq), path.lineto(sq.x * scale_sq, (sq.y+sq.h)*scale_sq), path.lineto((sq.x + sq.w)*scale_sq, (sq.y+sq.h)*scale_sq), path.lineto((sq.x + sq.w)*scale_sq, sq.y*scale_sq), path.closepath())
-            name = prefix + str(sq.name)
-            if sq.w < 300:
-                c.text((sq.x + sq.w/2)*scale_sq, (sq.y + sq.h/2)*scale_sq, name, [text.halign.center, text.vshift.mathaxis, scale(scale_fn), rotate(90)])
-            else:
-                c.text((sq.x + sq.w/2)*scale_sq, (sq.y + sq.h/2)*scale_sq, name, [text.halign.center, text.vshift.mathaxis, scale(scale_fn)])
-            c.stroke(rect) 
+            if self.etichete.get() == 1:
+                name = prefix + str(sq.name)
+                if sq.w < 300:
+                    c.text((sq.x + sq.w/2)*scale_sq, (sq.y + sq.h/2)*scale_sq, name, [text.halign.center, text.vshift.mathaxis, scale(scale_fn), rotate(90)])
+                else:
+                    c.text((sq.x + sq.w/2)*scale_sq, (sq.y + sq.h/2)*scale_sq, name, [text.halign.center, text.vshift.mathaxis, scale(scale_fn)])
+            c.stroke(rect)                 
 
         if self.eps.get() == 1:      
+            self.status.set('Scriu: EPS')
             c.writeEPSfile(fis)
         if self.pdf.get() == 1:
+            self.status.set('Scriu: PDF')
             c.writePDFfile(fis)
         if self.svg.get() == 1:
+            self.status.set('Scriu: SVG')
             c.writeSVGfile(fis)        
+        self.status.set('Am Terminat !!!')
 
     def file_add(self):
         fname = filedialog.askopenfilename(initialdir = "./", title = "Selectati fisier Excel", filetypes = (("Fisiere EXCEL", "*.xlsx*"), ("Toate fisierele", "*.*")))
@@ -254,6 +266,20 @@ class CNCConvert:
         prefix = name[:5] + '-'
         self.prefix.delete(0, END)
         self.prefix.insert(0, prefix)
+
+        df = pd.DataFrame(pd.read_excel(fname))
+        c1 = list(df.iloc[:,1])
+        c2 = list(df.iloc[:,2])
+        c3 = list(df.iloc[:,3])
+        c4 = list(df.iloc[:,4])
+        self.initial_data = [(c1[i], c2[i], c3[i], c4[i]) for i in range(len(c1)) if type(c1[i]) == int and type(c2[i]) == int and type(c3[i]) == int]
+        
+        self.data = []
+        for item in self.initial_data:
+            for i in range(item[3]):
+                self.data += [[item[1], item[2], item[0]]]
+
+        self.status.set(f'Fisier incarcat: [{len(self.initial_data)} unice] / [{len(self.data)} total]')
 
     def slow_process(self):
         excel_file = self.path.get()
