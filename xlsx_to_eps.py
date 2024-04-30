@@ -16,12 +16,12 @@ class CNCConvert:
     def __init__(self):
         self.root = Tk()
         self.root.title("Conversie documente EXCEL la format grafic vectorial - Narcis CNC Design")
-        self.root.geometry('640x290')
+        self.root.geometry('640x310')
         self.root.resizable(False, False)
 
-        config = {}
+        self.config = {}
         if os.path.isfile("config.json"):
-            config = json.load(open("config.json", 'r'))
+            self.config = json.load(open("config.json", 'r'))        
 
         Label(self.root, text='Fisier EXCEL: ').grid(column=0, row=0)
         self.path = Entry(self.root, width = 80)
@@ -32,71 +32,133 @@ class CNCConvert:
         self.pdf = IntVar()
         self.svg = IntVar()
         self.eps = IntVar()
-        if len(config) == 0:
+        if len(self.config) == 0:
             self.pdf.set(1)
             self.svg.set(0)
             self.eps.set(0)
         else:
-            self.pdf.set(config["pdf"])
-            self.svg.set(config["svg"])
-            self.eps.set(config["eps"])
+            self.pdf.set(self.config["pdf"])
+            self.svg.set(self.config["svg"])
+            self.eps.set(self.config["eps"])
         Checkbutton(self.root, text='PDF', variable=self.pdf).grid(column=1, row=2, sticky="W")
         Checkbutton(self.root, text='SVG', variable=self.svg).grid(column=1, row=3, sticky="W")
         Checkbutton(self.root, text='EPS', variable=self.eps).grid(column=1, row=4, sticky="W")
 
         Label(self.root, text='Formatul aranjarii: ', font='Helvetica 16 bold').grid(column=2, row=1, sticky="W")
         self.format = IntVar()
-        if len(config) == 0:
+        if len(self.config) == 0:
             self.format.set(1)
         else:
-            self.format.set(config["format"])
+            self.format.set(self.config["format"])
         Radiobutton(self.root, text="Format liniar de-a lungul axei X", variable=self.format, value=1).grid(column=2, row=2, sticky="W")
         Radiobutton(self.root, text="Format Rectangular XY CU rotatii", variable=self.format, value=2).grid(column=2, row=3, sticky="W")
         Radiobutton(self.root, text="Format Rectangular XY FARA rotatii", variable=self.format, value=3).grid(column=2, row=4, sticky="W")
         
         Label(self.root, text='Etichete: ', font='Helvetica 16 bold').grid(column=1, row=5, sticky="W")
         self.etichete = IntVar()
-        if len(config) == 0:
+        if len(self.config) == 0:
             self.etichete.set(1)
         else:
-            self.etichete.set(config["etichete"])
+            self.etichete.set(self.config["etichete"])
         Checkbutton(self.root, text='Afiseaza', variable=self.etichete).grid(column=1, row=6, sticky="W")
 
         Label(self.root, text='Mareste de: ').grid(column=1, row=7, sticky="W")
         self.scale2 = Entry(self.root, width = 15)
         self.scale2.grid(column=1, row=7, columnspan=1, sticky="E")
         self.scale2.delete(0, END)            
-        if len(config) == 0:
-            self.scale2.insert(0, "7")
+        if len(self.config) == 0:
+            self.scale2.insert(0, "0.7")
         else:
-            self.scale2.insert(0, config["scale_fonts"])
+            self.scale2.insert(0, self.config["scale_fonts"])
         
         Label(self.root, text='Prefix: ').grid(column=1, row=8, sticky="W")
         self.prefix = Entry(self.root, width = 15)
         self.prefix.grid(column=1, row=8, sticky="E")
         self.prefix.delete(0, END)
-        if len(config) == 0:
+        if len(self.config) == 0:
             self.prefix.delete(0, END)
 
         self.scale1 = IntVar()
-        if len(config) == 0:
+        if len(self.config) == 0:
             self.scale1.set(10)
         else:
-            self.scale1.set(config["scale_squares"])
+            self.scale1.set(self.config["scale_squares"])
 
         Label(self.root, text='Scala Forme Geometrice: ', font='Helvetica 16 bold').grid(column=2, row=5, sticky="W")        
-        Radiobutton(self.root, text="1 %", variable=self.scale1, value=100).grid(column=2, row=6, sticky="W")
-        Radiobutton(self.root, text="10 %", variable=self.scale1, value=10).grid(column=2, row=7, sticky="W")
-        Radiobutton(self.root, text="20 %", variable=self.scale1, value=5).grid(column=2, row=8, sticky="W")                
-        Radiobutton(self.root, text="30 %", variable=self.scale1, value=3).grid(column=2, row=6, sticky="E")
-        Radiobutton(self.root, text="50 %", variable=self.scale1, value=2).grid(column=2, row=7, sticky="E")
-        Radiobutton(self.root, text="100 %", variable=self.scale1, value=1).grid(column=2, row=8, sticky="E")                
+        Radiobutton(self.root, text="1 %", variable=self.scale1, value=100, command=self.cmd_100).grid(column=2, row=6, sticky="W")
+        Radiobutton(self.root, text="10 %", variable=self.scale1, value=10, command=self.cmd_10).grid(column=2, row=7, sticky="W")
+        Radiobutton(self.root, text="20 %", variable=self.scale1, value=5, command=self.cmd_5).grid(column=2, row=8, sticky="W")                
+        Radiobutton(self.root, text="30 %", variable=self.scale1, value=3, command=self.cmd_3).grid(column=2, row=6, sticky="E")
+        Radiobutton(self.root, text="50 %", variable=self.scale1, value=2, command=self.cmd_2).grid(column=2, row=7, sticky="E")
+        Radiobutton(self.root, text="100 %", variable=self.scale1, value=1, command=self.cmd_1).grid(column=2, row=8, sticky="E")                
         
-        Button(self.root, text='Proceseaza', command=self.process).grid(column=2, row=9, sticky="W")
+        Label(self.root, text='Spatiu: ').grid(column=1, row=9, sticky="W")
+        self.spatiu = Entry(self.root, width = 15)
+        self.spatiu.grid(column=1, row=9, sticky="E")
+        self.spatiu.delete(0, END)
+        if len(self.config) == 0:
+            self.spatiu.delete(0, END)
+            self.spatiu.insert(0, "20")
+        else:
+            self.spatiu.delete(0, END)
+            if "spatiu" in self.config:
+                self.spatiu.insert(0, self.config["spatiu"])
+            else:
+                self.spatiu.insert(0, "20")
+
+        Button(self.root, text='Proceseaza', command=self.process).grid(column=2, row=10, sticky="W")
 
         self.status=StringVar()        
-        Label(self.root, bd=1, relief=SUNKEN, width=70, anchor=W,textvariable=self.status,font=('arial',12,'normal')).grid(column=0, row=10, columnspan=4, sticky="W")
+        Label(self.root, bd=1, relief=SUNKEN, width=70, anchor=W,textvariable=self.status,font=('arial',12,'normal')).grid(column=0, row=11, columnspan=4, sticky="W")
         self.status.set('Pregatit ... ')
+
+    def cmd_100(self):
+        self.scale2.delete(0, END)            
+        if "_100" in self.config:
+            self.scale2.insert(0, self.config["_100"])    
+        else:
+            self.scale2.insert(0, "0.07")
+            self.config["_100"] = "0.07"
+
+    def cmd_10(self):
+        self.scale2.delete(0, END)            
+        if "_10" in self.config:
+            self.scale2.insert(0, self.config["_10"])    
+        else:
+            self.scale2.insert(0, "0.7")
+            self.config["_100"] = "0.7"
+
+    def cmd_5(self):
+        self.scale2.delete(0, END)            
+        if "_5" in self.config:
+            self.scale2.insert(0, self.config["_5"])    
+        else:
+            self.scale2.insert(0, "1.4")
+            self.config["_100"] = "1.4"
+
+    def cmd_3(self):
+        self.scale2.delete(0, END)            
+        if "_3" in self.config:
+            self.scale2.insert(0, self.config["_3"])    
+        else:
+            self.scale2.insert(0, "2.5")
+            self.config["_100"] = "2.5"
+
+    def cmd_2(self):
+        self.scale2.delete(0, END)            
+        if "_2" in self.config:
+            self.scale2.insert(0, self.config["_2"])    
+        else:
+            self.scale2.insert(0, "3.5")
+            self.config["_100"] = "3.5"
+
+    def cmd_1(self):
+        self.scale2.delete(0, END)                    
+        if "_1" in self.config:
+            self.scale2.insert(0, self.config["_1"])    
+        else:
+            self.scale2.insert(0, "7")   
+            self.config["_100"] = "7"                                 
 
     def SaveConfig(self):
         data = {    
@@ -106,7 +168,14 @@ class CNCConvert:
             "format": self.format.get(),
             "etichete": self.etichete.get(),
             "scale_squares": self.scale1.get(),
-            "scale_fonts": self.scale2.get()
+            "scale_fonts": self.scale2.get(),
+            "spatiu": self.spatiu.get(),
+            "_100": "0.07",
+            "_10": "0.7",
+            "_5": "1.4",
+            "_3": "2.5",
+            "_2": "3.5",
+            "_1": "7"
         }
         with open("config.json", 'w') as f:
             json.dump(data, f)
@@ -213,6 +282,7 @@ class CNCConvert:
     def ConvertToVectorial(self, prefix, fis):
         scale_sq = 1 / self.scale1.get()
         scale_fn = float(self.scale2.get())
+        spatiu = int(self.spatiu.get())
 
         mode = self.format.get()        
         if mode == 2:        
@@ -225,14 +295,14 @@ class CNCConvert:
             self.status.set('Aranjez chenarele dreptuncghiular FARA rotiri ... ')
         else:
             rectangles = []
-            x = 20            
+            x = spatiu          
             self.status.set('Aranjez chenarele de-a lungul axei X ... ')
             for rect in self.initial_data:
-                y = 20
+                y = spatiu
                 for i in range(rect[3]):
                     rectangles += [Rectangle(x, y, rect[2], rect[1], rect[0])]    
-                    y += 20 + rect[1]
-                x += 20 + rect[2]                                
+                    y += spatiu + rect[1]
+                x += spatiu + rect[2]                                
             self.status.set('Aranjez chenarele de-a lungul axei X : GATA')
 
         unit.set(defaultunit="mm")
