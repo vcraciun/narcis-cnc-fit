@@ -413,28 +413,38 @@ class CNCConvert:
         self.SaveConfig()
         threading.Thread(target=self.slow_process).start()
 
+    def UpdateOptionMenus(self, new_name):
+        self.clicked2.set(new_name)
+        self.drop2.destroy()
+        self.drop.destroy()
+        self.drop2 = OptionMenu(self.tab2, self.clicked2, *list(self.profiles.keys()), command=self.load_profile)        
+        self.drop = OptionMenu(self.tab1, self.clicked, *list(self.profiles.keys()))        
+        self.drop2.grid(column=0, row=1, sticky="W")
+        self.drop.grid(column=1, row=11, sticky="W")
+
     def salveaza_profil(self):        
-        existing_name = self.profil_name.get()
-        new_name = self.clicked2.get()
-        self.profiles[existing_name] = {
+        new_name = self.profil_name.get()        
+        existing_name = self.clicked2.get()
+        self.profiles[new_name] = {
             "suprapunere": self.clicked3.get(),
             "chenare": self.distante.get()
         }
         if new_name != existing_name:
-            os.unlink(os.path.join("profile", existing_name))
-            self.profiles[new_name] = self.profiles[existing_name]
+            os.unlink(os.path.join("profile", existing_name + '.json'))
             self.profiles.pop(existing_name)
-        json.dump(self.profiles[new_name], open(os.path.join("profile", new_name + '.json'), 'w'))                         
+        json.dump(self.profiles[new_name], open(os.path.join("profile", new_name + '.json'), 'w'))    
+        self.LoadProfiles()
+        self.UpdateOptionMenus(new_name)
 
     def adauga_profil(self):
-        new_name = self.clicked2.get()
+        new_name = self.profil_name.get()
         self.profiles[new_name] = {
             "suprapunere": self.clicked3.get(),
             "chenare": self.distante.get()
         }
         json.dump(self.profiles[new_name], open(os.path.join("profile", new_name + '.json'), 'w')) 
-        #self.drop2.config(self.tab2, self.clicked2.get(), *list(self.profiles.keys()))
-        #self.drop.configure(self.tab1, self.clicked.get(), *list(self.profiles.keys()))
+        self.LoadProfiles()
+        self.UpdateOptionMenus(new_name)
 
     def load_profile(self, caption):
         if "Fara Profil" in caption:
@@ -448,7 +458,6 @@ class CNCConvert:
         self.clicked3.set(data["suprapunere"])
         self.distante.delete(0, END)
         self.distante.insert(0, data["chenare"])
-
 
 def main():
     converter = CNCConvert()
