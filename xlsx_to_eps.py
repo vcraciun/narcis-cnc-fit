@@ -336,6 +336,10 @@ class CNCConvert:
         scale_sq = 1 / self.scale1.get()
         scale_fn = float(self.scale2.get())
         spatiu = int(self.spatiu.get())
+        profil = self.profiles[self.clicked.get()]
+        supra = 0 if profil['suprapunere'] == 'ignora' else 1 if profil['suprapunere'] == 'linie' else 2
+        chenare = [int(item) for item in profil['chenare'].split(',')]
+        print(supra, chenare)
 
         mode = self.format.get()        
         if mode == 2:        
@@ -348,27 +352,41 @@ class CNCConvert:
             self.status.set('Aranjez chenarele dreptuncghiular FARA rotiri ... ')
         else:
             rectangles = []
+            top_rectangles = []
             x = spatiu          
             self.status.set('Aranjez chenarele de-a lungul axei X ... ')
             for rect in self.initial_data:
                 y = spatiu
                 for i in range(rect[3]):
                     rectangles += [Rectangle(x, y, rect[2], rect[1], rect[0])]    
+                    top_rectangles += [Rectangle(x, y, rect[2], rect[1], rect[0])]    
+                    for offset in chenare:                        
+                        if supra == 2 or supra == 0 or (supra == 1 and offset < rect[2]-2*offset and offset < rect[1]-2*offset):
+                            rectangles += [Rectangle(x+offset, y+offset, rect[2]-2*offset, rect[1]-2*offset, rect[0])]    
+                        else:
+                            if offset >= rect[2]-2*offset:
+                                rectangles += [Rectangle(x+rect[2]//2, y+offset, 1, rect[1]-2*offset, rect[0])]    
+                            if offset >= rect[1]-2*offset:
+                                rectangles += [Rectangle(x+offset, y+rect[1]//2, rect[2]-2*offset, 1, rect[0])]
+    
                     y += spatiu + rect[1]
                 x += spatiu + rect[2]                                
             self.status.set('Aranjez chenarele de-a lungul axei X : GATA')
 
         unit.set(defaultunit="mm")
+        
         c = canvas.canvas()    
         for sq in rectangles:
             rect = path.path(path.moveto(sq.x*scale_sq, sq.y * scale_sq), path.lineto(sq.x * scale_sq, (sq.y+sq.h)*scale_sq), path.lineto((sq.x + sq.w)*scale_sq, (sq.y+sq.h)*scale_sq), path.lineto((sq.x + sq.w)*scale_sq, sq.y*scale_sq), path.closepath())
+            c.stroke(rect)                 
+
+        for sq in top_rectangles:
             if self.etichete.get() == 1:
                 name = prefix + str(sq.name)
                 if sq.w < 300:
                     c.text((sq.x + sq.w/2)*scale_sq, (sq.y + sq.h/2)*scale_sq, name, [text.halign.center, text.vshift.mathaxis, scale(scale_fn), rotate(90)])
                 else:
                     c.text((sq.x + sq.w/2)*scale_sq, (sq.y + sq.h/2)*scale_sq, name, [text.halign.center, text.vshift.mathaxis, scale(scale_fn)])
-            c.stroke(rect)                 
 
         if self.eps.get() == 1:      
             self.status.set('Scriu: EPS')
