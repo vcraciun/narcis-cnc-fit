@@ -3,6 +3,7 @@ from pyx import *
 from pyx.trafo import rotate, scale
 from tkinter import *
 from tkinter import filedialog
+from tkinter import ttk
 import threading
 import os
 from copy import deepcopy
@@ -16,19 +17,32 @@ class CNCConvert:
     def __init__(self):
         self.root = Tk()
         self.root.title("Conversie documente EXCEL la format grafic vectorial - Narcis CNC Design")
-        self.root.geometry('640x310')
+        self.root.geometry('640x410')
         self.root.resizable(False, False)
+
+        self.tab_parent = ttk.Notebook(self.root)
+        self.tab1 = ttk.Frame(self.tab_parent)
+        self.tab2 = ttk.Frame(self.tab_parent)
+        self.tab_parent.add(self.tab1, text = "Control")
+        self.tab_parent.add(self.tab2, text = "Profile")
+        self.tab_parent.pack(expand=1, fill='both')
+
+        self.profiles = {"Fara Profil": {}}
 
         self.config = {}
         if os.path.isfile("config.json"):
-            self.config = json.load(open("config.json", 'r'))        
+            self.config = json.load(open("config.json", 'r'))     
 
-        Label(self.root, text='Fisier EXCEL: ').grid(column=0, row=0)
-        self.path = Entry(self.root, width = 80)
+        if os.path.isdir("profile"):
+            self.LoadProfiles()        
+
+        #---------------------------------------------- TAB 1 -------------------------------------------------------
+        Label(self.tab1, text='Fisier EXCEL: ').grid(column=0, row=0)
+        self.path = Entry(self.tab1, width = 80)
         self.path.grid(column=1, row=0, columnspan=2)
-        Button(self.root, text='Deschide', command=self.file_add).grid(column=3, row=0)
+        Button(self.tab1, text='Deschide', command=self.file_add).grid(column=3, row=0)
 
-        Label(self.root, text='Fisiere Output: ', font='Helvetica 16 bold').grid(column=1, row=1, sticky="W")
+        Label(self.tab1, text='Fisiere Output: ', font='Helvetica 16 bold').grid(column=1, row=1, sticky="W")
         self.pdf = IntVar()
         self.svg = IntVar()
         self.eps = IntVar()
@@ -40,30 +54,30 @@ class CNCConvert:
             self.pdf.set(self.config["pdf"])
             self.svg.set(self.config["svg"])
             self.eps.set(self.config["eps"])
-        Checkbutton(self.root, text='PDF', variable=self.pdf).grid(column=1, row=2, sticky="W")
-        Checkbutton(self.root, text='SVG', variable=self.svg).grid(column=1, row=3, sticky="W")
-        Checkbutton(self.root, text='EPS', variable=self.eps).grid(column=1, row=4, sticky="W")
+        Checkbutton(self.tab1, text='PDF', variable=self.pdf).grid(column=1, row=2, sticky="W")
+        Checkbutton(self.tab1, text='SVG', variable=self.svg).grid(column=1, row=3, sticky="W")
+        Checkbutton(self.tab1, text='EPS', variable=self.eps).grid(column=1, row=4, sticky="W")
 
-        Label(self.root, text='Formatul aranjarii: ', font='Helvetica 16 bold').grid(column=2, row=1, sticky="W")
+        Label(self.tab1, text='Formatul aranjarii: ', font='Helvetica 16 bold').grid(column=2, row=1, sticky="W")
         self.format = IntVar()
         if len(self.config) == 0:
             self.format.set(1)
         else:
             self.format.set(self.config["format"])
-        Radiobutton(self.root, text="Format liniar de-a lungul axei X", variable=self.format, value=1).grid(column=2, row=2, sticky="W")
-        Radiobutton(self.root, text="Format Rectangular XY CU rotatii", variable=self.format, value=2).grid(column=2, row=3, sticky="W")
-        Radiobutton(self.root, text="Format Rectangular XY FARA rotatii", variable=self.format, value=3).grid(column=2, row=4, sticky="W")
+        Radiobutton(self.tab1, text="Format liniar de-a lungul axei X", variable=self.format, value=1).grid(column=2, row=2, sticky="W")
+        Radiobutton(self.tab1, text="Format Rectangular XY CU rotatii", variable=self.format, value=2).grid(column=2, row=3, sticky="W")
+        Radiobutton(self.tab1, text="Format Rectangular XY FARA rotatii", variable=self.format, value=3).grid(column=2, row=4, sticky="W")
         
-        Label(self.root, text='Etichete: ', font='Helvetica 16 bold').grid(column=1, row=5, sticky="W")
+        Label(self.tab1, text='Etichete: ', font='Helvetica 16 bold').grid(column=1, row=5, sticky="W")
         self.etichete = IntVar()
         if len(self.config) == 0:
             self.etichete.set(1)
         else:
             self.etichete.set(self.config["etichete"])
-        Checkbutton(self.root, text='Afiseaza', variable=self.etichete).grid(column=1, row=6, sticky="W")
+        Checkbutton(self.tab1, text='Afiseaza', variable=self.etichete).grid(column=1, row=6, sticky="W")
 
-        Label(self.root, text='Mareste de: ').grid(column=1, row=7, sticky="W")
-        self.scale2 = Entry(self.root, width = 15)
+        Label(self.tab1, text='Mareste de: ').grid(column=1, row=7, sticky="W")
+        self.scale2 = Entry(self.tab1, width = 15)
         self.scale2.grid(column=1, row=7, columnspan=1, sticky="E")
         self.scale2.delete(0, END)            
         if len(self.config) == 0:
@@ -71,8 +85,8 @@ class CNCConvert:
         else:
             self.scale2.insert(0, self.config["scale_fonts"])
         
-        Label(self.root, text='Prefix: ').grid(column=1, row=8, sticky="W")
-        self.prefix = Entry(self.root, width = 15)
+        Label(self.tab1, text='Prefix: ').grid(column=1, row=8, sticky="W")
+        self.prefix = Entry(self.tab1, width = 15)
         self.prefix.grid(column=1, row=8, sticky="E")
         self.prefix.delete(0, END)
         if len(self.config) == 0:
@@ -84,16 +98,16 @@ class CNCConvert:
         else:
             self.scale1.set(self.config["scale_squares"])
 
-        Label(self.root, text='Scala Forme Geometrice: ', font='Helvetica 16 bold').grid(column=2, row=5, sticky="W")        
-        Radiobutton(self.root, text="1 %", variable=self.scale1, value=100, command=self.cmd_100).grid(column=2, row=6, sticky="W")
-        Radiobutton(self.root, text="10 %", variable=self.scale1, value=10, command=self.cmd_10).grid(column=2, row=7, sticky="W")
-        Radiobutton(self.root, text="20 %", variable=self.scale1, value=5, command=self.cmd_5).grid(column=2, row=8, sticky="W")                
-        Radiobutton(self.root, text="30 %", variable=self.scale1, value=3, command=self.cmd_3).grid(column=2, row=6, sticky="E")
-        Radiobutton(self.root, text="50 %", variable=self.scale1, value=2, command=self.cmd_2).grid(column=2, row=7, sticky="E")
-        Radiobutton(self.root, text="100 %", variable=self.scale1, value=1, command=self.cmd_1).grid(column=2, row=8, sticky="E")                
+        Label(self.tab1, text='Scala Forme Geometrice: ', font='Helvetica 16 bold').grid(column=2, row=5, sticky="W")        
+        Radiobutton(self.tab1, text="1 %", variable=self.scale1, value=100, command=self.cmd_100).grid(column=2, row=6, sticky="W")
+        Radiobutton(self.tab1, text="10 %", variable=self.scale1, value=10, command=self.cmd_10).grid(column=2, row=7, sticky="W")
+        Radiobutton(self.tab1, text="20 %", variable=self.scale1, value=5, command=self.cmd_5).grid(column=2, row=8, sticky="W")                
+        Radiobutton(self.tab1, text="30 %", variable=self.scale1, value=3, command=self.cmd_3).grid(column=2, row=6, sticky="E")
+        Radiobutton(self.tab1, text="50 %", variable=self.scale1, value=2, command=self.cmd_2).grid(column=2, row=7, sticky="E")
+        Radiobutton(self.tab1, text="100 %", variable=self.scale1, value=1, command=self.cmd_1).grid(column=2, row=8, sticky="E")                
         
-        Label(self.root, text='Spatiu: ').grid(column=1, row=9, sticky="W")
-        self.spatiu = Entry(self.root, width = 15)
+        Label(self.tab1, text='Spatiu: ').grid(column=1, row=9, sticky="W")
+        self.spatiu = Entry(self.tab1, width = 15)
         self.spatiu.grid(column=1, row=9, sticky="E")
         self.spatiu.delete(0, END)
         if len(self.config) == 0:
@@ -104,13 +118,52 @@ class CNCConvert:
             if "spatiu" in self.config:
                 self.spatiu.insert(0, self.config["spatiu"])
             else:
-                self.spatiu.insert(0, "20")
+                self.spatiu.insert(0, "20")      
 
-        Button(self.root, text='Proceseaza', command=self.process).grid(column=2, row=10, sticky="W")
+        Label(self.tab1, text='Profil: ', font='Helvetica 16 bold').grid(column=1, row=10, sticky="W")
+        self.clicked = StringVar()
+        self.clicked.set(list(self.profiles.keys())[0])
+        self.drop = OptionMenu(self.tab1, self.clicked, *list(self.profiles.keys()))
+        self.drop.grid(column=1, row=11, sticky="W")
+
+        Button(self.tab1, text='Proceseaza', command=self.process).grid(column=2, row=12, sticky="W")
 
         self.status=StringVar()        
-        Label(self.root, bd=1, relief=SUNKEN, width=70, anchor=W,textvariable=self.status,font=('arial',12,'normal')).grid(column=0, row=11, columnspan=4, sticky="W")
+        Label(self.tab1, bd=2, relief=SUNKEN, width=70, anchor=W,textvariable=self.status,font=('arial',12,'normal')).grid(pady = 10, column=0, row=13, columnspan=4, sticky="W")
         self.status.set('Pregatit ... ')
+        
+        #---------------------------------------------- TAB 2 -------------------------------------------------------
+        Label(self.tab2, text='Selectie: ', font='Helvetica 16 bold').grid(column=0, row=0, sticky="W")
+        self.clicked2 = StringVar()
+        self.clicked2.set(list(self.profiles.keys())[0])
+        self.drop2 = OptionMenu(self.tab2, self.clicked2, *list(self.profiles.keys()), command=self.load_profile)
+        self.drop2.grid(column=0, row=1, sticky="W")
+
+        Label(self.tab2, text='Config: ', font='Helvetica 16 bold').grid(column=0, row=2, sticky="W")
+        Label(self.tab2, text='Nume: ').grid(column=0, row=3, sticky="E")
+        self.profil_name = Entry(self.tab2, width = 87)
+        self.profil_name.grid(column=1, row=3)
+        Label(self.tab2, text='Suprapunere: ').grid(column=0, row=4, sticky="E")
+        self.clicked3 = StringVar()
+        self.optiuni_eroare = ["ignora", "linie", "fara"]
+        self.clicked3.set(self.optiuni_eroare[0])
+        self.drop3 = OptionMenu(self.tab2, self.clicked3, *self.optiuni_eroare)
+        self.drop3.grid(column=1, row=4, sticky="W")
+        Label(self.tab2, text='Chenare: ').grid(column=0, row=5, sticky="E")
+        self.distante = Entry(self.tab2, width = 87)
+        self.distante.grid(column=1, row=5)
+        Button(self.tab2, text='Salveaza', command=self.salveaza_profil).grid(column=0, row=6, sticky="W")
+        Button(self.tab2, text='Adauga', command=self.adauga_profil).grid(column=1, row=6, sticky="W")        
+
+    def LoadProfiles(self):
+        files = [os.path.join("profile", ff) for ff in os.listdir("profile") if ff.endswith(".json")]
+        for fl in files:
+            path, name = os.path.split(fl)
+            fname, fext = os.path.splitext(name)
+            ff = open(fl, 'r')
+            profil = json.load(ff)
+            ff.close()
+            self.profiles[fname] = profil
 
     def cmd_100(self):
         self.scale2.delete(0, END)            
@@ -359,6 +412,43 @@ class CNCConvert:
     def process(self):
         self.SaveConfig()
         threading.Thread(target=self.slow_process).start()
+
+    def salveaza_profil(self):        
+        existing_name = self.profil_name.get()
+        new_name = self.clicked2.get()
+        self.profiles[existing_name] = {
+            "suprapunere": self.clicked3.get(),
+            "chenare": self.distante.get()
+        }
+        if new_name != existing_name:
+            os.unlink(os.path.join("profile", existing_name))
+            self.profiles[new_name] = self.profiles[existing_name]
+            self.profiles.pop(existing_name)
+        json.dump(self.profiles[new_name], open(os.path.join("profile", new_name + '.json'), 'w'))                         
+
+    def adauga_profil(self):
+        new_name = self.clicked2.get()
+        self.profiles[new_name] = {
+            "suprapunere": self.clicked3.get(),
+            "chenare": self.distante.get()
+        }
+        json.dump(self.profiles[new_name], open(os.path.join("profile", new_name + '.json'), 'w')) 
+        #self.drop2.config(self.tab2, self.clicked2.get(), *list(self.profiles.keys()))
+        #self.drop.configure(self.tab1, self.clicked.get(), *list(self.profiles.keys()))
+
+    def load_profile(self, caption):
+        if "Fara Profil" in caption:
+            self.profil_name.delete(0, END)                
+            self.distante.delete(0, END)
+            self.clicked3.set("fara")    
+            return
+        data = self.profiles[caption]
+        self.profil_name.delete(0, END)            
+        self.profil_name.insert(0, caption)
+        self.clicked3.set(data["suprapunere"])
+        self.distante.delete(0, END)
+        self.distante.insert(0, data["chenare"])
+
 
 def main():
     converter = CNCConvert()
