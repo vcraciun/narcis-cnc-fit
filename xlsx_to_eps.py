@@ -136,7 +136,7 @@ class CNCConvert:
         Label(self.tab2, text='Selectie: ', font='Helvetica 16 bold').grid(column=0, row=0, sticky="W")
         self.clicked2 = StringVar()
         self.clicked2.set(list(self.profiles.keys())[0])
-        self.drop2 = OptionMenu(self.tab2, self.clicked2, *list(self.profiles.keys()), command=self.load_profile)
+        self.drop2 = OptionMenu(self.tab2, self.clicked2, *list(self.profiles.keys()), command=self.initialize_profile)
         self.drop2.grid(column=0, row=1, sticky="W")
 
         Label(self.tab2, text='Config: ', font='Helvetica 16 bold').grid(column=0, row=2, sticky="W")
@@ -145,7 +145,7 @@ class CNCConvert:
         self.profil_name.grid(column=1, row=3)
         Label(self.tab2, text='Suprapunere: ').grid(column=0, row=4, sticky="E")
         self.clicked3 = StringVar()
-        self.optiuni_eroare = ["ignora", "linie", "fara"]
+        self.optiuni_eroare = ["ignora", "linie"]
         self.clicked3.set(self.optiuni_eroare[0])
         self.drop3 = OptionMenu(self.tab2, self.clicked3, *self.optiuni_eroare)
         self.drop3.grid(column=1, row=4, sticky="W")
@@ -337,9 +337,9 @@ class CNCConvert:
         scale_fn = float(self.scale2.get())
         spatiu = int(self.spatiu.get())
         profil = self.profiles[self.clicked.get()]
-        supra = 0 if profil['suprapunere'] == 'ignora' else 1 if profil['suprapunere'] == 'linie' else 2
-        chenare = [int(item) for item in profil['chenare'].split(',')]
-        print(supra, chenare)
+        supra = 0 if profil['suprapunere'] == 'ignora' else 1
+        chenare = profil['chenare']
+        print(f"profil utilizat: {self.clicked.get()}, suprapunere: {supra}, chenare: {chenare}")
 
         mode = self.format.get()        
         if mode == 2:        
@@ -361,7 +361,7 @@ class CNCConvert:
                     rectangles += [Rectangle(x, y, rect[2], rect[1], rect[0])]    
                     top_rectangles += [Rectangle(x, y, rect[2], rect[1], rect[0])]    
                     for offset in chenare:                        
-                        if supra == 2 or supra == 0 or (supra == 1 and offset < rect[2]-2*offset and offset < rect[1]-2*offset):
+                        if supra == 0 or (supra == 1 and offset < rect[2]-2*offset and offset < rect[1]-2*offset):
                             rectangles += [Rectangle(x+offset, y+offset, rect[2]-2*offset, rect[1]-2*offset, rect[0])]    
                         else:
                             if offset >= rect[2]-2*offset:
@@ -435,7 +435,7 @@ class CNCConvert:
         self.clicked2.set(new_name)
         self.drop2.destroy()
         self.drop.destroy()
-        self.drop2 = OptionMenu(self.tab2, self.clicked2, *list(self.profiles.keys()), command=self.load_profile)        
+        self.drop2 = OptionMenu(self.tab2, self.clicked2, *list(self.profiles.keys()), command=self.initialize_profile)        
         self.drop = OptionMenu(self.tab1, self.clicked, *list(self.profiles.keys()))        
         self.drop2.grid(column=0, row=1, sticky="W")
         self.drop.grid(column=1, row=11, sticky="W")
@@ -443,39 +443,46 @@ class CNCConvert:
     def salveaza_profil(self):        
         new_name = self.profil_name.get()        
         existing_name = self.clicked2.get()
+        chenare = self.distante.get()
+        
         self.profiles[new_name] = {
             "suprapunere": self.clicked3.get(),
-            "chenare": self.distante.get()
+            "chenare": [float(item) for item in chenare.split(',')]
         }
+
         if new_name != existing_name:
             os.unlink(os.path.join("profile", existing_name + '.json'))
             self.profiles.pop(existing_name)
+
         json.dump(self.profiles[new_name], open(os.path.join("profile", new_name + '.json'), 'w'))    
         self.LoadProfiles()
         self.UpdateOptionMenus(new_name)
 
     def adauga_profil(self):
         new_name = self.profil_name.get()
+        chenare = self.distante.get()
+
         self.profiles[new_name] = {
             "suprapunere": self.clicked3.get(),
-            "chenare": self.distante.get()
+            "chenare": [float(item) for item in chenare.split(',')]
         }
+
         json.dump(self.profiles[new_name], open(os.path.join("profile", new_name + '.json'), 'w')) 
         self.LoadProfiles()
         self.UpdateOptionMenus(new_name)
 
-    def load_profile(self, caption):
+    def initialize_profile(self, caption):
         if "Fara Profil" in caption:
             self.profil_name.delete(0, END)                
             self.distante.delete(0, END)
-            self.clicked3.set("fara")    
+            self.clicked3.set("ignora")
             return
         data = self.profiles[caption]
         self.profil_name.delete(0, END)            
         self.profil_name.insert(0, caption)
         self.clicked3.set(data["suprapunere"])
         self.distante.delete(0, END)
-        self.distante.insert(0, data["chenare"])
+        self.distante.insert(0, ",".join([str(item) for item in data["chenare"]]))
 
 def main():
     converter = CNCConvert()

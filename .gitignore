@@ -162,3 +162,4 @@ cython_debug/
 *.pdf
 *.svg
 data/~$C1112 BUCATARIE_cnc.xlsx
+.vscode
